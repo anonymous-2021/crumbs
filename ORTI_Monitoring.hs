@@ -20,8 +20,8 @@ import Utils
 main = do
   -- Addresses of the ORTI status array
   let addrs = [0x700001EC, 0x700001F0 .. 0x70000224]
-    -- Read offline trace data from file
-  tr <- readTrace "traces/ORTI_Trace_60s.ht"
+  -- Read offline trace data from file
+  tr <- readTrace "traces/ORTI_Trace_240s.ht"
   -- Calculate task set stats
   let res = map (getStats tr) addrs
   -- Remove task stats of inactive tasks
@@ -54,16 +54,16 @@ gi (x:xs) | x.>snd == 3 = gi' xs : gi xs
 -- Filter trace data according to the task's orti-address
 fa :: Trace -> Integer -> Trace
 fa [] _ = []
-fa (x:xs) a | x |= Tim = x : fa xs a
-            | x |= Mem && 
+fa (x:xs) a | x |= TME = x : fa xs a
+            | x |= MEM && 
               x.>content.>dAddress == a = x : fa xs a
             | otherwise = fa xs a
 
 -- Convert the given trace to time and task state tuples
 gs :: Trace -> [(Integer, Integer)]
-gs (x:y:xs) | x |= Mem && y |= Tim
+gs (x:y:xs) | x |= MEM && y |= TME
               = (y.>time, x.>content.>dValue) : gs xs
-            | not (x |= Mem) = gs (y:xs)
+            | not (x |= MEM) = gs (y:xs)
 gs _ = []
 
 -- Calculate periods of the given task instances
