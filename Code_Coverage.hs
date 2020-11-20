@@ -69,7 +69,7 @@ pp xs = (sort . nub . concat) xs
 -- between (including) the given start and end address
 ga :: Address -> Address -> Trace -> [(Integer, Integer)]
 ga _ _ [] = []
-ga fs fe (x:xs) | x |= Dis && a1 >= fs && a2 <= fe
+ga fs fe (x:xs) | x |= IPT && a1 >= fs && a2 <= fe
                   = (a1, a2 + 4) : ga fs fe xs
                 | otherwise = ga fs fe xs
                 where
