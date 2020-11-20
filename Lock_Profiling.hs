@@ -42,9 +42,9 @@ tc = (tail . init)
 
 -- Filter trace according to the given observation point
 -- and map the trace messages to value and time tuples
-fam :: ObservationPoint -> Trace -> [(Integer, Integer)]
+fam :: ResourceType -> Trace -> [(Integer, Integer)]
 fam _ [] = []
-fam op (x:xs) | x |= Mem && x.>origin == op
+fam op (x:xs) | x |= MEM && x.>origin == op
                 = (x.>time, x.>content.>dValue) : fam op xs
               | otherwise = fam op xs
 
