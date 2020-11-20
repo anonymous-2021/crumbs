@@ -67,12 +67,12 @@ import Numeric
 ----------------------
 -- Type Definitions --
 ----------------------
-data MessageType = Mem
-                 | Dis
-                 | Sts
-                 | Tim
-                 | SoT
-                 | EoT
+data MessageType = MEM
+                 | IPT
+                 | STS
+                 | TME
+                 | SOT
+                 | EOT
                  | MessageTypeUnknown
                  deriving (Generic, Read, Show, Eq)
 
@@ -140,21 +140,21 @@ bsToTrace bs    | BS.length bs >= 25    = (bsToMsg bs) : bsToTrace (BS.drop 25 b
 bsToMsg :: BS.ByteString -> Message
 bsToMsg bs  | (BS.head bs) == 0 = (Event (bsToW32 $ BS.tail bs) (bsToOrigin $ BS.drop 5 bs) (bsToType $ BS.drop 6 bs) (bsToContent (bsToType $ BS.drop 6 bs) $ BS.drop 7 bs))
             | (BS.head bs) == 1 = (TimeEvent (bsToW32 $ BS.tail bs) (bsToW64 $ BS.drop 5 bs) (bsToOrigin $ BS.drop 13 bs) (bsToType $ BS.drop 14 bs) (bsToContent (bsToType $ BS.drop 14 bs) $ BS.drop 15 bs))
-            | otherwise = (TimeEvent 0 0 CPU0 SoT None)
+            | otherwise = (TimeEvent 0 0 CPU0 SOT None)
 
 bsToContent :: MessageType -> BS.ByteString -> Content
-bsToContent Tim bs = None
-bsToContent SoT bs = None
-bsToContent EoT bs = None
+bsToContent TME bs = None
+bsToContent SOT bs = None
+bsToContent EOT bs = None
 bsToContent MessageTypeUnknown bs = ContentUnknown
-bsToContent Mem bs  | (BS.head $ BS.drop 9 bs) == 0 = (Memory (bsToW32 bs) (bsToW32 $ BS.drop 4 bs) (fromIntegral $ BS.head $ BS.drop 5 bs) Write)
+bsToContent MEM bs  | (BS.head $ BS.drop 9 bs) == 0 = (Memory (bsToW32 bs) (bsToW32 $ BS.drop 4 bs) (fromIntegral $ BS.head $ BS.drop 5 bs) Write)
                     | (BS.head $ BS.drop 9 bs) == 1 = (Memory (bsToW32 bs) (bsToW32 $ BS.drop 4 bs) (fromIntegral $ BS.head $ BS.drop 5 bs) Read)
                     | otherwise                     = (Memory (bsToW32 bs) (bsToW32 $ BS.drop 4 bs) (fromIntegral $ BS.head $ BS.drop 5 bs) OperationTypeUnknown) 
-bsToContent Dis bs  | (BS.head $ BS.drop 8 bs) == 0 = (Ipt (bsToW32 bs) (bsToW32 $ BS.drop 4 bs) Call)
+bsToContent IPT bs  | (BS.head $ BS.drop 8 bs) == 0 = (Ipt (bsToW32 bs) (bsToW32 $ BS.drop 4 bs) Call)
                     | (BS.head $ BS.drop 8 bs) == 1 = (Ipt (bsToW32 bs) (bsToW32 $ BS.drop 4 bs) Return)
                     | (BS.head $ BS.drop 8 bs) == 2 = (Ipt (bsToW32 bs) (bsToW32 $ BS.drop 4 bs) Sequence)
                     | otherwise                     = (Ipt (bsToW32 bs) (bsToW32 $ BS.drop 4 bs) IptTypeUnknown)
-bsToContent Sts bs  | (BS.head bs) == 0 = (Status StartISR)
+bsToContent STS bs  | (BS.head bs) == 0 = (Status StartISR)
                     | (BS.head bs) == 1 = (Status EndISR)
                     | (BS.head bs) == 2 = (Status TraceGap)
                     | otherwise         = (Status StatusChangeUnknown)
@@ -171,12 +171,12 @@ bsToOrigin bs   | (BS.head bs) == 0xC0    = CPU0
                 | otherwise               = SRI
 
 bsToType :: BS.ByteString -> MessageType
-bsToType bs | (BS.head bs) == 20 = Mem
-            | (BS.head bs) == 30 = Dis
-            | (BS.head bs) == 24 = Sts
-            | (BS.head bs) == 23 = Tim
-            | (BS.head bs) == 0 = SoT
-            | (BS.head bs) == 255 = EoT
+bsToType bs | (BS.head bs) == 20 = MEM
+            | (BS.head bs) == 30 = IPT
+            | (BS.head bs) == 24 = STS
+            | (BS.head bs) == 23 = TME
+            | (BS.head bs) == 0  = SOT
+            | (BS.head bs) == 255 = EOT
             | otherwise         = MessageTypeUnknown
 
 bsToW32 :: BS.ByteString -> Integer
